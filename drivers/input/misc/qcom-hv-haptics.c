@@ -5377,6 +5377,19 @@ static u32 get_lra_impedance_capable_max(struct haptics_chip *chip)
 	return mohms;
 }
 
+static int haptics_enable_autores_cal(struct haptics_chip *chip, bool enable)
+{
+	u8 val = 0;
+	int rc;
+	if (enable)
+		val = AUTORES_CAL_TRIG_BIT | AUTORES_CAL_TIMER_6_HALF_CYCLES;
+	else
+		val = AUTORES_CAL_TIMER_4_HALF_CYCLES;
+	rc = haptics_write(chip, chip->ptn_addr_base,
+			HAP_PTN_AUTORES_CAL_CFG_REG, &val, 1);
+	return rc;
+}
+
 #define RT_IMPD_DET_VMAX_DEFAULT_MV		4500
 static int haptics_measure_realtime_lra_impedance(struct haptics_chip *chip)
 {
@@ -5681,7 +5694,7 @@ restore:
 static int haptics_detect_lra_frequency(struct haptics_chip *chip)
 {
 	int rc;
-	u8 autores_cfg, drv_duty_cfg, amplitude, mask, val;
+	u8 autores_cfg, drv_duty_cfg, amplitude, mask, val = 0;
 	u32 vmax_mv = chip->config.f0_vmax_mv;
 #ifdef CONFIG_MI_HARDWARE_ID
 	const char *product_name = product_name_get();
